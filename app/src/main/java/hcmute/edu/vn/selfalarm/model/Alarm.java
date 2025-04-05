@@ -140,7 +140,7 @@ public class Alarm implements Serializable {
         Bundle bundle=new Bundle();
         bundle.putSerializable(context.getString(R.string.arg_alarm_obj),this);
         intent.putExtra(context.getString(R.string.bundle_alarm_obj),bundle);
-        PendingIntent alarmPendingIntent = PendingIntent.getBroadcast(context, alarmId, intent, 0);
+        PendingIntent alarmPendingIntent = PendingIntent.getBroadcast(context, alarmId, intent, PendingIntent.FLAG_IMMUTABLE);
 
         Calendar calendar = Calendar.getInstance();
         calendar.setTimeInMillis(System.currentTimeMillis());
