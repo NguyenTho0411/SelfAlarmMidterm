@@ -11,9 +11,11 @@ import androidx.fragment.app.FragmentTransaction;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.telephony.PhoneStateListener;
@@ -32,6 +34,8 @@ import hcmute.edu.vn.selfalarm.fragments.CallsFragment;
 import hcmute.edu.vn.selfalarm.fragments.SmsFragment;
 import hcmute.edu.vn.selfalarm.receivers.CallReceiver;
 import hcmute.edu.vn.selfalarm.receivers.SmsReceiver;
+import hcmute.edu.vn.selfalarm.receivers.SystemReceiver;
+import hcmute.edu.vn.selfalarm.service.BatteryMonitorService;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -46,6 +50,7 @@ public class MainActivity extends AppCompatActivity {
     private SmsReceiver smsReceiver;
     private CallReceiver callReceiver;
     private TelephonyManager telephonyManager;
+    private SystemReceiver systemReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -109,6 +114,17 @@ public class MainActivity extends AppCompatActivity {
         telephonyManager = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
         if (telephonyManager != null) {
             telephonyManager.listen(callReceiver, CallReceiver.LISTEN_CALL_STATE);
+        }
+
+        systemReceiver = new SystemReceiver();
+        IntentFilter systemFilter = new IntentFilter();
+        systemFilter.addAction(Intent.ACTION_BATTERY_CHANGED);
+        systemFilter.addAction(Intent.ACTION_SCREEN_ON);
+        systemFilter.addAction(Intent.ACTION_SCREEN_OFF);
+        registerReceiver(systemReceiver, systemFilter);
+        Intent systemServiceIntent = new Intent(this, BatteryMonitorService.class);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(systemServiceIntent);
         }
     }
 
