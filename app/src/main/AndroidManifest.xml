@@ -23,6 +23,11 @@
     <!-- Permissions for foreground service -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <!-- Cho phép app chạy foreground service -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+
+    <!-- Cho phép theo dõi trạng thái mạng (nếu cần) -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
         android:allowBackup="true"
@@ -55,10 +60,20 @@
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
         </receiver>
+        <receiver android:name=".receivers.SystemReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.SCREEN_ON" />
+                <action android:name="android.intent.action.SCREEN_OFF" />
+            </intent-filter>
+        </receiver>
 
         <service android:name=".service.AlarmService"
             android:exported="false" />
         <service android:name=".service.RescheduleAlarmsService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse" />
+        <service android:name=".service.BatteryMonitorService"
             android:exported="false"
             android:foregroundServiceType="specialUse" />
 
