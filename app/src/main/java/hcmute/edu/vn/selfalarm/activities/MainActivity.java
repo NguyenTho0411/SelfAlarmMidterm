@@ -30,6 +30,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import hcmute.edu.vn.selfalarm.R;
 import hcmute.edu.vn.selfalarm.fragments.AlarmPageFragment;
+import hcmute.edu.vn.selfalarm.fragments.AlarmsListFragment;
 import hcmute.edu.vn.selfalarm.fragments.CallsFragment;
 
 import hcmute.edu.vn.selfalarm.fragments.MusicPlayerFragment;
@@ -46,7 +47,7 @@ public class MainActivity extends AppCompatActivity {
     SharedPreferences.Editor edit;
 
     private BottomNavigationView bottomNavigationView;
-    private FloatingActionButton fabAddCall, fabAddSms;
+    private FloatingActionButton fabAddCall, fabAddSms, fabAddReminder;
     private Fragment currentFragment;
     // Receivers
     private SmsReceiver smsReceiver;
@@ -64,6 +65,7 @@ public class MainActivity extends AppCompatActivity {
         bottomNavigationView = findViewById(R.id.bottom_navigation);
         fabAddCall = findViewById(R.id.fabAddCall);
         fabAddSms = findViewById(R.id.fabSendSms);
+        fabAddReminder = findViewById(R.id.fabReminder);
 
         requestPermission();
 
@@ -80,11 +82,11 @@ public class MainActivity extends AppCompatActivity {
             } else if (itemId == R.id.nav_music) {
                 loadFragment(new MusicPlayerFragment());
                 fabAddCall.setVisibility(View.GONE);
-                fabAddSms.setVisibility(View.VISIBLE);
+                fabAddSms.setVisibility(View.GONE);
             } else {
                 loadFragment(new AlarmPageFragment());
-                fabAddCall.setVisibility(View.VISIBLE);
-                fabAddSms.setVisibility(View.VISIBLE);
+                fabAddCall.setVisibility(View.GONE);
+                fabAddSms.setVisibility(View.GONE);
             }
             return true;
         });
@@ -101,8 +103,14 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        fabAddReminder.setOnClickListener(v -> {
+            if (currentFragment instanceof AlarmsListFragment) {
+                ((AlarmsListFragment) currentFragment).toggleAddReminderView();
+            }
+        });
+
         // Load default fragment
-        loadFragment(new AlarmPageFragment());
+        loadFragment(new MusicPlayerFragment());
 
         // Register receivers
         registerReceivers();

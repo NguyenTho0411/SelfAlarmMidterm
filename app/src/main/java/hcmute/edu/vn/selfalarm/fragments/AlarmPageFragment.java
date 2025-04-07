@@ -7,6 +7,7 @@ import androidx.fragment.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import hcmute.edu.vn.selfalarm.R;
 
@@ -62,5 +63,9 @@ public class AlarmPageFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_alarm_page, container, false);
+    }
+
+    public void toggleAddReminderView() {
+        Toast.makeText(getContext(), "Click on a clock between screen to add a reminder", Toast.LENGTH_SHORT).show();
     }
 }
