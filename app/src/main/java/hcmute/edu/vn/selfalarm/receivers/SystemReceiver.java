@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.os.BatteryManager;
 
 import hcmute.edu.vn.selfalarm.service.BatteryMonitorService;
+import hcmute.edu.vn.selfalarm.service.BatteryOptimizeService;
 
 public class SystemReceiver extends BroadcastReceiver {
     @Override
@@ -18,6 +19,7 @@ public class SystemReceiver extends BroadcastReceiver {
             boolean isCharging = intent.getIntExtra(BatteryManager.EXTRA_STATUS, -1)
                     == BatteryManager.BATTERY_STATUS_CHARGING;
             message = "Pin: " + level + "% - " + (isCharging ? "Đang sạc" : "Không sạc");
+
         } else if (Intent.ACTION_SCREEN_ON.equals(action)) {
             message = "Màn hình đã bật";
         } else if (Intent.ACTION_SCREEN_OFF.equals(action)) {
