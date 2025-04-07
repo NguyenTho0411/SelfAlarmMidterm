@@ -36,8 +36,8 @@ import hcmute.edu.vn.selfalarm.fragments.CallsFragment;
 import hcmute.edu.vn.selfalarm.fragments.SmsFragment;
 import hcmute.edu.vn.selfalarm.receivers.CallReceiver;
 import hcmute.edu.vn.selfalarm.receivers.SmsReceiver;
-import hcmute.edu.vn.selfalarm.receivers.SystemReceiver;
-import hcmute.edu.vn.selfalarm.service.BatteryMonitorService;
+import hcmute.edu.vn.selfalarm.receivers.SystemMonitorReceiver;
+import hcmute.edu.vn.selfalarm.service.SystemMonitorService;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -52,7 +52,7 @@ public class MainActivity extends AppCompatActivity {
     private SmsReceiver smsReceiver;
     private CallReceiver callReceiver;
     private TelephonyManager telephonyManager;
-    private SystemReceiver systemReceiver;
+    private SystemMonitorReceiver systemMonitorReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -118,15 +118,20 @@ public class MainActivity extends AppCompatActivity {
             telephonyManager.listen(callReceiver, CallReceiver.LISTEN_CALL_STATE);
         }
 
-        systemReceiver = new SystemReceiver();
+        // Register System Monitor receiver
+        systemMonitorReceiver = new SystemMonitorReceiver();
         IntentFilter systemFilter = new IntentFilter();
         systemFilter.addAction(Intent.ACTION_BATTERY_CHANGED);
         systemFilter.addAction(Intent.ACTION_SCREEN_ON);
         systemFilter.addAction(Intent.ACTION_SCREEN_OFF);
-        registerReceiver(systemReceiver, systemFilter);
-        Intent systemServiceIntent = new Intent(this, BatteryMonitorService.class);
+        registerReceiver(systemMonitorReceiver, systemFilter);
+
+        // Start System Monitor Service
+        Intent systemServiceIntent = new Intent(this, SystemMonitorService.class);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             startForegroundService(systemServiceIntent);
+        } else {
+            startService(systemServiceIntent);
         }
     }
 
@@ -175,6 +180,10 @@ public class MainActivity extends AppCompatActivity {
 
         if (telephonyManager != null && callReceiver != null) {
             telephonyManager.listen(callReceiver, PhoneStateListener.LISTEN_NONE);
+        }
+
+        if (systemMonitorReceiver != null) {
+            unregisterReceiver(systemMonitorReceiver);
         }
     }
 
