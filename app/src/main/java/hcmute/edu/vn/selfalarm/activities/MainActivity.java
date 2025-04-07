@@ -15,9 +15,11 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.provider.Settings;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.view.Menu;
@@ -137,7 +139,8 @@ public class MainActivity extends AppCompatActivity {
                 Manifest.permission.RECEIVE_SMS,
                 Manifest.permission.READ_CONTACTS,
                 Manifest.permission.READ_PHONE_STATE,
-                Manifest.permission.PROCESS_OUTGOING_CALLS
+                Manifest.permission.PROCESS_OUTGOING_CALLS,
+                Manifest.permission.POST_NOTIFICATIONS
         };
 
         boolean allPermissionsGranted =true;
@@ -152,6 +155,14 @@ public class MainActivity extends AppCompatActivity {
         if (!allPermissionsGranted){
             ActivityCompat.requestPermissions(this, permissions, PERMISSION_REQUEST_CODE);
         }
+
+        if (!Settings.System.canWrite(this)) {
+            Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS);
+            intent.setData(Uri.parse("package:" + getPackageName()));
+            startActivity(intent);
+        }
+
+
     }
 
     @Override
