@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
@@ -100,5 +101,9 @@ public class AlarmsListFragment extends Fragment implements OnToggleAlarmListene
         Bundle args = new Bundle();
         args.putSerializable(getString(R.string.arg_alarm_obj),alarm);
         Navigation.findNavController(view).navigate(R.id.action_alarmsListFragment_to_createAlarmFragment,args);
+    }
+
+    public void toggleAddReminderView() {
+        Toast.makeText(getContext(), "Click on a clock between screen to add a reminder", Toast.LENGTH_SHORT).show();
     }
 }
