@@ -141,11 +141,11 @@ public class MusicPlayerFragment extends Fragment implements View.OnClickListene
     @Override
     public void onClick(View view) {
         if (view.equals(playPauseBtn)) {
-            if (MyMediaPlayer.isStopped) {
+            if (MyMediaPlayer.isStopped && !songsList.isEmpty()) {
                 playAudio();
-            } else if (MyMediaPlayer.isPaused) {
+            } else if (MyMediaPlayer.isPaused && !songsList.isEmpty()) {
                 resumeAudio();
-            } else {
+            } else if (!MyMediaPlayer.isPaused && !songsList.isEmpty()) {
                 pauseAudio();
             }
         } else if (view.equals(prevBtn)) {
@@ -188,7 +188,11 @@ public class MusicPlayerFragment extends Fragment implements View.OnClickListene
 
     void prevSong() {
         MyMediaPlayer.isPaused = false;
-        MyMediaPlayer.currentIndex--;
+        if (MyMediaPlayer.currentIndex == 0){
+            MyMediaPlayer.currentIndex = songsList.size() - 1;
+        }else {
+            MyMediaPlayer.currentIndex--;
+        }
 
         Intent prevInt = new Intent(getActivity(), MediaPlayerService.class);
         prevInt.setAction(SERVICE_PREV_SONG);
@@ -199,7 +203,11 @@ public class MusicPlayerFragment extends Fragment implements View.OnClickListene
 
     void nextSong() {
         MyMediaPlayer.isPaused = false;
-        MyMediaPlayer.currentIndex++;
+        if (MyMediaPlayer.currentIndex == songsList.size() - 1){
+            MyMediaPlayer.currentIndex = 0;
+        }else {
+            MyMediaPlayer.currentIndex++;
+        }
 
         Intent nextInt = new Intent(getActivity(), MediaPlayerService.class);
         nextInt.setAction(SERVICE_NEXT_SONG);

@@ -5,6 +5,7 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Intent;
+import android.content.pm.ServiceInfo;
 import android.os.Build;
 import android.os.IBinder;
 
@@ -15,16 +16,17 @@ import androidx.core.app.NotificationManagerCompat;
 import hcmute.edu.vn.selfalarm.R;
 
 public class BatteryMonitorService extends Service {
+    private static final String CHANNEL_ID = "battery_monitor_channel";
+    private static final int NOTIFICATION_ID = 1;
 
     @Override
     public void onCreate() {
         super.onCreate();
         createNotificationChannel();
-        startForeground(1, buildNotification("Battery Monitor is running..."));
     }
 
-    private Notification buildNotification(String content){
-        return new NotificationCompat.Builder(this, "monitor channel")
+    private Notification buildNotification(String content) {
+        return new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_low_battery)
                 .setContentTitle("Battery Monitor")
                 .setContentText(content)
@@ -32,10 +34,10 @@ public class BatteryMonitorService extends Service {
                 .build();
     }
 
-    private void createNotificationChannel(){
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+    private void createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel channel = new NotificationChannel(
-                    "monitor channel",
+                    CHANNEL_ID,
                     "Battery Monitor",
                     NotificationManager.IMPORTANCE_LOW
             );
@@ -47,10 +49,17 @@ public class BatteryMonitorService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        // Start foreground service immediately
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            startForeground(NOTIFICATION_ID, buildNotification("Battery Monitor is running..."), ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE);
+        } else {
+            startForeground(NOTIFICATION_ID, buildNotification("Battery Monitor is running..."));
+        }
+
         if (intent != null && intent.hasExtra("update_message")) {
             String msg = intent.getStringExtra("update_message");
             Notification updated = buildNotification(msg);
-            NotificationManagerCompat.from(this).notify(1, updated);
+            NotificationManagerCompat.from(this).notify(NOTIFICATION_ID, updated);
         }
         return START_STICKY;
     }

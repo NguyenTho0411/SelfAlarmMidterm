@@ -7,98 +7,108 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ServiceInfo;
 import android.media.MediaPlayer;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.Vibrator;
+import android.os.VibrationEffect;
+import android.os.Build;
 
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
-
 
 import java.io.IOException;
 
 import hcmute.edu.vn.selfalarm.R;
 import hcmute.edu.vn.selfalarm.activities.RingActivity;
+import hcmute.edu.vn.selfalarm.data.NotificationHelper;
 import hcmute.edu.vn.selfalarm.model.Alarm;
-
 
 public class AlarmService extends Service {
     private MediaPlayer mediaPlayer;
     private Vibrator vibrator;
-    Alarm alarm;
-    Uri ringtone;
+    private NotificationHelper notificationHelper;
+    private Alarm alarm;
+    private Uri ringtone;
+
     @Override
     public void onCreate() {
         super.onCreate();
         mediaPlayer = new MediaPlayer();
         mediaPlayer.setLooping(true);
         vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-        ringtone= RingtoneManager.getActualDefaultRingtoneUri(this.getBaseContext(), RingtoneManager.TYPE_ALARM);
+        notificationHelper = new NotificationHelper(this);
+        ringtone = RingtoneManager.getActualDefaultRingtoneUri(this.getBaseContext(), RingtoneManager.TYPE_ALARM);
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Bundle bundle=intent.getBundleExtra(getString(R.string.bundle_alarm_obj));
-        if (bundle!=null)
-            alarm =(Alarm)bundle.getSerializable(getString(R.string.arg_alarm_obj));
-        Intent notificationIntent = new Intent(this, RingActivity.class);
-        notificationIntent.putExtra(getString(R.string.bundle_alarm_obj),bundle);
-//        notificationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_NO_USER_ACTION | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-        String alarmTitle=getString(R.string.alarm_title);
-        if(alarm!=null) {
-            alarmTitle = alarm.getTitle();
-            try {
-                mediaPlayer.setDataSource(this.getBaseContext(), Uri.parse(alarm.getTone()));
-                mediaPlayer.prepareAsync();
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            }
+        Bundle bundle = intent.getBundleExtra(getString(R.string.bundle_alarm_obj));
+        if (bundle != null) {
+            alarm = (Alarm) bundle.getSerializable(getString(R.string.arg_alarm_obj));
         }
-        else{
 
-            try {
-                mediaPlayer.setDataSource(this.getBaseContext(),ringtone);
-                mediaPlayer.prepareAsync();
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            }
+        // Start foreground service with proper type
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            startForeground(1, notificationHelper.createAlarmNotification(alarm), ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE);
+        } else {
+            startForeground(1, notificationHelper.createAlarmNotification(alarm));
         }
-        Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setContentTitle("Ring Ring .. Ring Ring")
-                .setContentText(alarmTitle)
-                .setSmallIcon(R.drawable.ic_alarm_white_24dp)
-                .setSound(null)
-                .setCategory(NotificationCompat.CATEGORY_ALARM)
-                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-                .setPriority(NotificationCompat.PRIORITY_MAX)
-                .setFullScreenIntent(pendingIntent,true)
-                .build();
-        mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-            @Override
-            public void onPrepared(MediaPlayer mediaPlayer) {
-                mediaPlayer.start();
-            }
-        });
 
-        if(alarm.isVibrate()) {
-            long[] pattern = {0, 100, 1000};
-            vibrator.vibrate(pattern, 0);
+        // Setup media player and start sound
+        setupMediaPlayer();
+
+        // Start vibration if enabled
+        if (alarm != null && alarm.isVibrate()) {
+            startVibration();
         }
-        startForeground(1, notification);
 
         return START_STICKY;
+    }
+
+    private void setupMediaPlayer() {
+        try {
+            if (alarm != null && alarm.getTone() != null) {
+                mediaPlayer.setDataSource(this.getBaseContext(), Uri.parse(alarm.getTone()));
+            } else {
+                mediaPlayer.setDataSource(this.getBaseContext(), ringtone);
+            }
+            mediaPlayer.prepare();
+            mediaPlayer.start();
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            // Fallback to default ringtone if custom one fails
+            try {
+                mediaPlayer.setDataSource(this.getBaseContext(), ringtone);
+                mediaPlayer.prepare();
+                mediaPlayer.start();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void startVibration() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            vibrator.vibrate(VibrationEffect.createOneShot(1000, VibrationEffect.DEFAULT_AMPLITUDE));
+        } else {
+            vibrator.vibrate(1000);
+        }
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-
-        mediaPlayer.stop();
-        vibrator.cancel();
+        if (mediaPlayer != null) {
+            mediaPlayer.stop();
+            mediaPlayer.release();
+        }
+        if (vibrator != null) {
+            vibrator.cancel();
+        }
     }
 
     @Nullable

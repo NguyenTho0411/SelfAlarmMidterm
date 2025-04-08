@@ -175,9 +175,15 @@ public class MainActivity extends AppCompatActivity {
     private void startBatteryMonitorService() {
         Intent systemServiceIntent = new Intent(this, BatteryMonitorService.class);
         try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) { startForegroundService(systemServiceIntent); }
-            else { startService(systemServiceIntent); }
-        } catch (Exception e) { Log.e(TAG, "Error starting BatteryMonitorService", e); }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(systemServiceIntent);
+            } else {
+                startService(systemServiceIntent);
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error starting BatteryMonitorService", e);
+            Toast.makeText(this, "Failed to start battery monitoring service", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void requestPermission() {

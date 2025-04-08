@@ -187,7 +187,12 @@ public class Alarm implements Serializable {
     public void cancelAlarm(Context context) {
         AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         Intent intent = new Intent(context, AlarmBroadcastReceiver.class);
-        PendingIntent alarmPendingIntent = PendingIntent.getBroadcast(context, alarmId, intent, 0);
+        PendingIntent alarmPendingIntent = PendingIntent.getBroadcast(
+            context, 
+            alarmId, 
+            intent, 
+            PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
         alarmManager.cancel(alarmPendingIntent);
         this.started = false;
         String toastText = String.format("Alarm cancelled for %02d:%02d", hour, minute);
