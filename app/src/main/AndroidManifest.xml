@@ -25,6 +25,10 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="32" />
 
+    <uses-permission android:name="android.permission.WRITE_SMS"/>
+    <uses-permission android:name="android.permission.MODIFY_PHONE_STATE" tools:ignore="ProtectedPermissions" />
+    <uses-permission android:name="android.permission.ANSWER_PHONE_CALLS" />
+
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
     <!-- Permissions for foreground service -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
@@ -34,6 +38,9 @@
 
     <!-- Cho phép theo dõi trạng thái mạng (nếu cần) -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+
+
 
     <application
         android:allowBackup="true"
@@ -45,6 +52,11 @@
         android:theme="@style/Theme.SelfAlarm"
         android:supportsRtl="true"
         tools:targetApi="31">
+
+        <provider
+            android:name=".providers.BlacklistContentProvider"
+            android:authorities="hcmute.edu.vn.selfalarm.providers.blacklist"
+            android:exported="false" />
 
         <activity
             android:name=".activities.RingActivity"
@@ -58,7 +70,13 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
+        <receiver android:name=".receivers.SmsReceiver"
+            android:exported="true"
+            android:permission="android.permission.BROADCAST_SMS">
+            <intent-filter android:priority="999">
+                <action android:name="android.provider.Telephony.SMS_RECEIVED" />
+            </intent-filter>
+        </receiver>
         <receiver android:name=".broadcastreciever.AlarmBroadcastReceiver"
             android:exported="false">
             <intent-filter>
@@ -84,6 +102,11 @@
         <service android:name=".service.MediaPlayerService"
             android:exported="false"
             android:foregroundServiceType="specialUse" />
+        <service android:name=".service.BlacklistService"
+            android:exported="false">
+            <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Provides call and message screening capabilities to the user." />
+        </service>
     </application>
 
 
